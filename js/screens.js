@@ -131,14 +131,20 @@ Prefer higher-protein options. Respond with ONLY a JSON array (no markdown). Eac
 
 /* ---------------- TRAIN ---------------- */
 function renderTrain(){
-  const burnt=burntToday();
+  const burnt=burntToday(),t=calc(state.profile),goal=t.burnGoal;
+  const pct=Math.min(goal?burnt/goal:0,1),R=104,C=2*Math.PI*R,dash=C*pct;
+  const left=Math.max(goal-burnt,0),reached=burnt>=goal;
   screen.innerHTML=`
     ${dayNav()}
     ${isViewingToday()?'':`<div class="pastbar">You're editing a past day<button id="jumpToday">Back to today</button></div>`}
-    <div class="ringcard" style="margin-bottom:6px">
-      <div class="orb" style="background:radial-gradient(circle at 32% 28%,#FFF0E6,#E0805A 70%,#C25E37)">🏋️</div>
-      <div style="font-family:'Newsreader',serif;font-size:46px;font-weight:500">${burnt.toLocaleString('en-IN')}</div>
-      <div class="sub" style="font-size:13px">calories burnt</div>
+    <div class="ringcard"><div class="ringwrap">
+      <svg width="240" height="240" viewBox="0 0 240 240"><defs>
+        <linearGradient id="bo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F2B79A"/><stop offset="1" stop-color="#D46E45"/></linearGradient>
+        <filter id="glowo"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#E0805A" flood-opacity="0.4"/></filter></defs>
+        <circle cx="120" cy="120" r="${R}" fill="none" stroke="#F4ECE8" stroke-width="18"/>
+        <circle cx="120" cy="120" r="${R}" fill="none" stroke="url(#bo)" stroke-width="18" stroke-linecap="round" stroke-dasharray="${dash} ${C}" transform="rotate(-90 120 120)" filter="url(#glowo)"/></svg>
+      <div class="ctr"><div class="big">${burnt.toLocaleString('en-IN')}</div><div class="cap">of ${goal} kcal goal</div></div></div>
+      <div class="ringline">${reached?'<b>Burn goal smashed</b> 💪':`<b>${left.toLocaleString('en-IN')}</b> kcal left to burn today`}</div>
     </div>
     <div class="section"><div class="aibox">
       <div class="ai-h">✨ Log a workout with AI</div>

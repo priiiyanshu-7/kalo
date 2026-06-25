@@ -25,7 +25,10 @@ function calc(p){
     weeks=Math.max(Math.round(toGo*7700/(Math.abs(adj)*7)),1);
   }
   const bmi=+(p.weight/Math.pow(p.height/100,2)).toFixed(1);
-  return{maintenance,target,protein,fat,carbs,adj,weeklyKg,weeks,toGo,bmi};
+  // daily exercise (active) calorie burn goal — by goal, nudged by activity level
+  const burnBase={lose:400,recomp:350,maintain:300,gain:250}[p.goal]||300;
+  const burnGoal=Math.round(burnBase*({sedentary:0.8,light:0.9,moderate:1,active:1.15,athlete:1.3}[p.activity]||1)/10)*10;
+  return{maintenance,target,protein,fat,carbs,adj,weeklyKg,weeks,toGo,bmi,burnGoal};
 }
 
 /* totals for the currently-viewed day */
