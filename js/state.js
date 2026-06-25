@@ -13,8 +13,10 @@ function migrate(s){
   s.days=s.days||{};s.weights=s.weights||[];s.tab=s.tab||'today';
   return s;
 }
-function loadLocal(){try{return migrate(JSON.parse(localStorage.getItem(SKEY)));}catch(e){return null;}}
-function saveLocal(s){try{localStorage.setItem(SKEY,JSON.stringify(s));}catch(e){}}
+/* cache key is per-account so two Google accounts on one device never mix */
+function localKey(){return (typeof currentUser!=='undefined' && currentUser && currentUser.id) ? SKEY+'.'+currentUser.id : SKEY;}
+function loadLocal(){try{return migrate(JSON.parse(localStorage.getItem(localKey())));}catch(e){return null;}}
+function saveLocal(s){try{localStorage.setItem(localKey(),JSON.stringify(s));}catch(e){}}
 
 /* save = local immediately, cloud debounced (if signed in) */
 function save(){saveLocal(state);if(typeof cloudPush==='function')cloudPush();}

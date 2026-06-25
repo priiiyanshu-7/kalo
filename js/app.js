@@ -41,11 +41,11 @@ async function applySession(session){
     guestMode=false;
     let cloud=null;
     try{cloud=await cloudPull();}catch(e){}
-    const local=loadLocal();
-    state=cloud||local||fresh();
+    // cloud is the source of truth; else fall back ONLY to this account's own cache,
+    // else a clean slate (→ onboarding). Never inherit another account's data.
+    state=cloud||loadLocal()||fresh();
     state.viewDate=todayKey();
     saveLocal(state);
-    if(!cloud&&local&&local.profile){cloudSaveNow().catch(()=>{});} // first cloud write from local data
   }
   render();
 }
