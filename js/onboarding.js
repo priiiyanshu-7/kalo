@@ -41,15 +41,31 @@ function onboarding(edit){
     wire(()=>{const a=+$('age').value;if(!a||a<10||a>100){alert('Enter a valid age.');return;}d.age=a;step++;show();});
   }
   function wBody(){
-    screen.innerHTML=`<div style="padding:0 4px">${bar()}
-      <h1 class="h1">Your body</h1><p class="sub" style="margin:10px 0 24px">Used for your BMR — kept private to your account.</p>
-      <div class="field"><span class="label">Height · cm</span><input id="height" type="number" inputmode="numeric" placeholder="172" value="${d.height||''}"></div>
-      <div class="field"><span class="label">Weight · kg</span><input id="weight" type="number" inputmode="decimal" placeholder="70" value="${d.weight||''}"></div>
-      ${navBtns('Continue',true)}</div>`;
-    wire(()=>{const h=+$('height').value,w=+$('weight').value;
-      if(!h||h<100||h>250){alert('Enter a valid height in cm.');return;}
-      if(!w||w<25||w>300){alert('Enter a valid weight in kg.');return;}
-      d.height=h;d.weight=w;step++;show();});
+    let hUnit=d.heightUnit||'cm';
+    const toFtIn=cm=>{const ti=cm/2.54;const ft=Math.floor(ti/12);return {ft,inch:Math.round(ti-ft*12)};};
+    const captureH=()=>{
+      if(hUnit==='cm'){const v=+(($('hcm')||{}).value);if(v)d.height=v;}
+      else{const ft=+(($('hft')||{}).value||0),inch=+(($('hin')||{}).value||0);if(ft||inch)d.height=Math.round((ft*12+inch)*2.54);}
+    };
+    const paint=()=>{
+      const hi=d.height?toFtIn(d.height):{ft:'',inch:''};
+      screen.innerHTML=`<div style="padding:0 4px">${bar()}
+        <h1 class="h1">Your body</h1><p class="sub" style="margin:10px 0 24px">Used for your BMR — kept private to your account.</p>
+        <div class="field"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span class="label">Height</span>
+          <div class="unitseg" id="hUnit"><button data-v="cm" class="${hUnit==='cm'?'on':''}">cm</button><button data-v="ft" class="${hUnit==='ft'?'on':''}">ft / in</button></div></div>
+          ${hUnit==='cm'
+            ?`<input id="hcm" type="number" inputmode="numeric" placeholder="172" value="${d.height||''}">`
+            :`<div style="display:flex;gap:10px"><input id="hft" type="number" inputmode="numeric" placeholder="5 ft" value="${hi.ft||''}" style="flex:1"><input id="hin" type="number" inputmode="numeric" placeholder="8 in" value="${hi.inch!==''?hi.inch:''}" style="flex:1"></div>`}
+        </div>
+        <div class="field"><span class="label">Weight · kg</span><input id="weight" type="number" inputmode="decimal" placeholder="70" value="${d.weight||''}"></div>
+        ${navBtns('Continue',true)}</div>`;
+      $('hUnit').onclick=e=>{const b=e.target.closest('button');if(!b||b.dataset.v===hUnit)return;captureH();hUnit=b.dataset.v;paint();};
+      wire(()=>{captureH();const h=d.height,w=+$('weight').value;
+        if(!h||h<100||h>250){alert('Enter a valid height.');return;}
+        if(!w||w<25||w>300){alert('Enter a valid weight in kg.');return;}
+        d.weight=w;d.heightUnit=hUnit;step++;show();});
+    };
+    paint();
   }
   function wActivity(){
     screen.innerHTML=`<div style="padding:0 4px">${bar()}
