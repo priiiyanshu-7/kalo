@@ -1,6 +1,20 @@
 /* ============================================================
-   Daily — bottom sheets: food, exercise, weight
+   Daily — bottom sheets: add-chooser, food, exercise, weight
    ============================================================ */
+
+/* the + button opens this: choose food or workout */
+function openAddSheet(){
+  openSheet(`<div class="h2">Add to your day</div>
+    <div class="addchoice">
+      <button class="addopt" id="addFood"><span class="ai">🍽️</span><div><div class="at">Log food</div><div class="ad">Meals, snacks & drinks</div></div><span class="arr">›</span></button>
+      <button class="addopt" id="addWorkout"><span class="ai">🏋️</span><div><div class="at">Log workout</div><div class="ad">Exercise & calories burnt</div></div><span class="arr">›</span></button>
+    </div>
+    <button class="ghost" id="addCancel">Cancel</button>`);
+  $('addFood').onclick=openFoodSheet;       // openSheet replaces the sheet content
+  $('addWorkout').onclick=openExSheet;
+  $('addCancel').onclick=closeSheet;
+}
+
 function openFoodSheet(){
   let tab='library',selected=null,qty=1;
   openSheet(`<div class="h2">Log food</div><div class="stabs"><button data-t="library" class="on">Search</button><button data-t="custom">Add your own</button></div><div id="sb"></div>`);
@@ -18,7 +32,7 @@ function openFoodSheet(){
       qa.innerHTML=`<div class="qtybar"><span class="ql">Servings</span><div class="stepper"><button id="mn">−</button><span class="qn">${qty}</span><button id="pl2">+</button></div></div><div class="preview">That's <b>${f.cal*qty} kcal</b> · ${f.p*qty}g protein</div>`;
       $('mn').onclick=()=>{qty=Math.max(1,qty-1);drawQ();};$('pl2').onclick=()=>{qty=Math.min(20,qty+1);drawQ();};};
     q.oninput=draw;draw();
-    $('cf').onclick=()=>{if(!selected){alert('Pick a food first.');return;}const f=FOODS.find(x=>x.name===selected);dayRec().log.push({name:f.name,cal:f.cal,p:f.p,c:f.c,fat:f.fat,diet:f.diet,qty});save();closeSheet();render();};
+    $('cf').onclick=()=>{if(!selected){alert('Pick a food first.');return;}const f=FOODS.find(x=>x.name===selected);dayRec().log.push({name:f.name,cal:f.cal,p:f.p,c:f.c,fat:f.fat,diet:f.diet,qty});save();closeSheet();render();toast('Added '+f.name);};
     $('cc2').onclick=closeSheet;
   }
   function custom(){
@@ -31,7 +45,7 @@ function openFoodSheet(){
     let cd='veg';$('cd').onclick=e=>pick(e,'cd',v=>cd=v);
     $('sc').onclick=()=>{const name=$('cn').value.trim(),cal=+$('ccal').value,p=+$('cp').value||0;if(!name||!cal){alert('Add a name and calories.');return;}
       const food=fillMacros({name,cal,p,diet:cd});FOODS.push({name,cal,p:food.p,c:food.c,fat:food.fat,diet:cd});
-      dayRec().log.push({name,cal,p:food.p,c:food.c,fat:food.fat,diet:cd,qty:1});save();closeSheet();render();};
+      dayRec().log.push({name,cal,p:food.p,c:food.c,fat:food.fat,diet:cd,qty:1});save();closeSheet();render();toast('Added '+name);};
     $('cc3').onclick=closeSheet;
   }
 }
@@ -49,7 +63,7 @@ function openExSheet(){
     q.innerHTML=`<div class="qtybar"><span class="ql">Minutes</span><div class="stepper"><button id="m1">−</button><span class="qn">${minutes}</span><button id="m2">+</button></div></div><div class="preview">≈ <b>${ex.rate*minutes} kcal</b> burnt</div>`;
     $('m1').onclick=()=>{minutes=Math.max(5,minutes-5);drawQ();};$('m2').onclick=()=>{minutes=Math.min(240,minutes+5);drawQ();};};
   draw();
-  $('ce').onclick=()=>{if(!selected){alert('Pick an exercise.');return;}const ex=EXERCISES.find(x=>x.name===selected);dayRec().exercises.push({name:ex.name,minutes,burnt:ex.rate*minutes});save();closeSheet();render();};
+  $('ce').onclick=()=>{if(!selected){alert('Pick an exercise.');return;}const ex=EXERCISES.find(x=>x.name===selected);dayRec().exercises.push({name:ex.name,minutes,burnt:ex.rate*minutes});save();closeSheet();render();toast('Workout logged 💪');};
   $('cce').onclick=closeSheet;
 }
 
@@ -65,6 +79,6 @@ function openWeightSheet(){
     const k=todayKey();const i=state.weights.findIndex(w=>w.date===k);
     if(i>=0)state.weights[i].kg=kg;else state.weights.push({date:k,kg});
     state.weights.sort((a,b)=>a.date<b.date?-1:1);
-    state.profile.weight=kg;save();closeSheet();render();};
+    state.profile.weight=kg;save();closeSheet();render();toast('Weight saved ✓');};
   $('cw').onclick=closeSheet;
 }

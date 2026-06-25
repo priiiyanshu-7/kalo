@@ -95,7 +95,7 @@ function renderSugg(t,remaining){
 function suggRow(f){return `<div class="row"><div class="dot" style="background:${dietColor(f.diet||'veg')}"></div>
   <div><div class="nm">${f.name}</div><div class="mt">${f.cal} kcal · ${f.p}g protein</div></div>
   <button class="addmini" data-food='${JSON.stringify(f).replace(/'/g,"&#39;")}'>Add</button></div>`;}
-function wireSugg(){$('sugg').querySelectorAll('.addmini').forEach(b=>b.onclick=()=>{const f=fillMacros(JSON.parse(b.dataset.food.replace(/&#39;/g,"'")));dayRec().log.push({name:f.name,cal:f.cal,p:f.p,c:f.c,fat:f.fat,diet:f.diet||'veg',qty:1});save();render();});}
+function wireSugg(){$('sugg').querySelectorAll('.addmini').forEach(b=>b.onclick=()=>{const f=fillMacros(JSON.parse(b.dataset.food.replace(/&#39;/g,"'")));dayRec().log.push({name:f.name,cal:f.cal,p:f.p,c:f.c,fat:f.fat,diet:f.diet||'veg',qty:1});save();render();toast('Added '+f.name);});}
 
 async function aiLogFood(text){
   if(!text)return;
@@ -110,7 +110,7 @@ Use realistic Indian portion estimates. If amount is unclear, assume one standar
     if(!items.length)throw new Error("empty");
     items.forEach(x=>{const it=fillMacros({name:String(x.name),cal:Math.round(+x.cal),p:Math.round(+x.p||0),c:x.c!=null?Math.round(+x.c):null,fat:x.fat!=null?Math.round(+x.fat):null});
       dayRec().log.push({name:it.name,cal:it.cal,p:it.p,c:it.c,fat:it.fat,diet:['veg','egg','nonveg'].includes(x.diet)?x.diet:'veg',qty:1});});
-    save();render();
+    save();render();toast('Logged with AI ✨');
   }catch(err){ s.innerHTML=`<div class="ai-status" style="color:var(--clay)">Couldn't reach AI here. You can add it manually instead.</div>`;btn.disabled=false; }
 }
 async function aiSuggestMeals(t,remaining){
@@ -172,7 +172,7 @@ Assume an average adult. Respond ONLY as a JSON array (no markdown). Each elemen
     const items=parseJSON(out).slice(0,6).filter(x=>x&&x.name&&x.burnt);
     if(!items.length)throw new Error("empty");
     items.forEach(x=>dayRec().exercises.push({name:String(x.name),minutes:Math.round(+x.minutes||0),burnt:Math.round(+x.burnt)}));
-    save();render();
+    save();render();toast('Workout logged 💪');
   }catch(err){ s.innerHTML=`<div class="ai-status" style="color:var(--clay)">Couldn't reach AI here. Add it manually instead.</div>`;btn.disabled=false; }
 }
 
@@ -213,6 +213,15 @@ function renderStreak(){
 }
 
 /* ---------------- YOU / PROFILE ---------------- */
+function greeting(){const h=new Date().getHours();return h<5?'Up late':h<12?'Good morning':h<17?'Good afternoon':h<21?'Good evening':'Winding down';}
+function userLevel(){
+  const d=activeDays().length;
+  const L=[[0,'Newbie','🌱'],[3,'Warming up','🔥'],[7,'On a roll','⚡'],[14,'Consistent','💪'],[30,'Committed','🏆'],[60,'Unstoppable','👑'],[100,'Legend','🌟']];
+  let i=0;for(let k=0;k<L.length;k++){if(d>=L[k][0])i=k;}
+  const cur=L[i],nxt=L[i+1]||null;
+  const pct=nxt?Math.min(100,Math.round((d-cur[0])/(nxt[0]-cur[0])*100)):100;
+  return {days:d,t:cur[1],icon:cur[2],next:nxt?nxt[1]:null,toNext:nxt?nxt[0]-d:0,pct};
+}
 function renderYou(){
   const p=state.profile,t=calc(p);
   const ws=state.weights||[];const cur=ws.length?ws[ws.length-1].kg:p.weight;const start=ws.length?ws[0].kg:p.weight;
@@ -220,24 +229,34 @@ function renderYou(){
   const toTarget=p.target?+(cur-p.target).toFixed(1):null;
   const u=(typeof userInfo==='function')?userInfo():null;
   const installable=!!window.deferredPrompt;
+  const streak=getStreak(),logged=activeDays().length,lvl=userLevel();
+  const initial=((u?u.name:'Y')||'Y').trim().charAt(0).toUpperCase();
   screen.innerHTML=`
     <div class="head"><div><div class="date">Your profile</div><div class="h1">You</div></div></div>
     <div class="profcard">
       <div class="profhead">
-        <div class="avatar">${u&&u.avatar?`<img src="${u.avatar}" alt="">`:'🙂'}</div>
-        <div><div class="pn">${u?u.name:'Guest'}</div><div class="pe">${u?u.email:(CLOUD?'Not signed in':'Local account on this device')}</div></div>
+        <div class="avatar ring">${u&&u.avatar?`<img src="${u.avatar}" alt="">`:initial}</div>
+        <div><div class="greet">${greeting()} 👋</div><div class="pn">${u?u.name:'Guest'}</div><div class="pe">${u?u.email:(CLOUD?'Not signed in':'On this device')}</div></div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
         <span class="pill ${ {veg:'pill-veg',egg:'pill-egg',nonveg:'pill-non'}[p.diet] }">${ {veg:'Veg',egg:'Eggetarian',nonveg:'Non-veg'}[p.diet] }</span>
         <span class="pill" style="background:var(--blue-tint);color:var(--blue-ink)">${GOALS[p.goal].t}</span>
         ${CLOUD&&currentUser?`<span class="synced">● Synced</span>`:''}
       </div>
-      <div class="kgrid">
-        <div class="kchip"><div class="kv">${t.target.toLocaleString('en-IN')}</div><div class="kl">Daily kcal</div></div>
-        <div class="kchip"><div class="kv">${t.protein}g</div><div class="kl">Protein</div></div>
-        <div class="kchip"><div class="kv">${t.bmi}</div><div class="kl">BMI</div></div>
+      <div class="funstats">
+        <div><div class="fs-ic">${streak?'🔥':'🌱'}</div><b>${streak}</b><small>day streak</small></div>
+        <div><div class="fs-ic">📅</div><b>${logged}</b><small>days logged</small></div>
+        <div><div class="fs-ic">${lvl.icon}</div><b style="font-size:14px">${lvl.t}</b><small>your level</small></div>
       </div>
+      <div class="levelbar"><i style="width:${lvl.pct}%"></i></div>
+      <div class="levelrow"><span>${lvl.next?`<b>${lvl.toNext}</b> more day${lvl.toNext===1?'':'s'} to <b>${lvl.next}</b>`:'Max level — legend! 🌟'}</span><span>${logged} days</span></div>
     </div>
+
+    <div class="section"><div class="kgrid">
+      <div class="kchip"><div class="kv">${t.target.toLocaleString('en-IN')}</div><div class="kl">Daily kcal</div></div>
+      <div class="kchip"><div class="kv">${t.protein}g</div><div class="kl">Protein goal</div></div>
+      <div class="kchip"><div class="kv">${t.bmi}</div><div class="kl">BMI</div></div>
+    </div></div>
 
     ${!CLOUD?`<div class="banner" style="margin-top:16px">⚠️ Cloud sync is off. Add your Supabase keys in <b>js/config.js</b> to enable Google sign-in and sync across devices.</div>`:''}
 
@@ -268,7 +287,7 @@ function renderYou(){
   $('exportData').onclick=exportData;
   $('resetApp').onclick=()=>{ if(confirm('This erases your profile, logs and weight history. Continue?')){state=fresh();state.viewDate=todayKey();save();render();} };
   if($('install'))$('install').onclick=async()=>{ if(!window.deferredPrompt)return;window.deferredPrompt.prompt();await window.deferredPrompt.userChoice;window.deferredPrompt=null;render(); };
-  if($('signOut'))$('signOut').onclick=async()=>{await cloudSignOut();};
+  if($('signOut'))$('signOut').onclick=async()=>{ if(confirm('Sign out of Daily?\n\nYour data stays safely synced to your account — it\'ll all be here when you sign back in.')){toast('Signing out…');await cloudSignOut();} };
   if($('signIn'))$('signIn').onclick=()=>cloudSignInGoogle();
 }
 function exportData(){

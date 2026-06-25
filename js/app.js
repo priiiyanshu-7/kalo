@@ -4,8 +4,11 @@
 let guestMode=false;   // chose "continue without account" in this session
 
 /* ---- router ---- */
+function hideSplash(){const s=document.getElementById('splash');if(s&&!s.classList.contains('hide')){s.classList.add('hide');setTimeout(()=>s.remove(),600);}}
+
 function render(){
   const fab=$('fab');
+  screen.classList.remove('anim');void screen.offsetWidth;screen.classList.add('anim'); // retrigger fade-in
   // gate: cloud configured + not signed in + not a guest → auth screen
   if(CLOUD && !currentUser && !guestMode){ if(fab)fab.style.display='none'; return renderAuth(); }
   if(state.profile)save();
@@ -16,10 +19,9 @@ function render(){
   else if(state.tab==='train')renderTrain();
   else if(state.tab==='streak')renderStreak();
   else renderYou();
-  // floating + : add food on Diet, add workout on Train
+  // floating + : opens a chooser (food or workout)
   if(fab){
-    if(state.tab==='today'){fab.style.display='flex';fab.onclick=openFoodSheet;}
-    else if(state.tab==='train'){fab.style.display='flex';fab.onclick=openExSheet;}
+    if(state.tab==='today'||state.tab==='train'){fab.style.display='flex';fab.onclick=openAddSheet;}
     else fab.style.display='none';
   }
 }
@@ -63,6 +65,7 @@ async function boot(){
     // local-only mode
     state=loadLocal()||fresh();state.viewDate=todayKey();render();
   }
+  setTimeout(hideSplash,650);
 }
 
 boot();

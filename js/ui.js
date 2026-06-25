@@ -7,6 +7,15 @@ const screen=document.getElementById('screen'),
       sheet=document.getElementById('sheet'),
       $=id=>document.getElementById(id);
 
+/* toast — brief confirmation pill */
+let _toastT=null;
+function toast(msg){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);}
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(_toastT);_toastT=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
 /* bottom sheet */
 function openSheet(html){sheet.innerHTML=`<div class="grab"></div>`+html;scrim.classList.add('show');requestAnimationFrame(()=>sheet.classList.add('show'));}
 function closeSheet(){sheet.classList.remove('show');scrim.classList.remove('show');}
