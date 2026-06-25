@@ -34,7 +34,7 @@ function openFoodSheet(){
         return `<div class="pick ${qy?'sel':''}" data-name="${f.name}"><div class="dot" style="width:10px;height:10px;border-radius:50%;background:${dietColor(f.diet)}"></div><div><div class="nm">${f.name}</div><div class="mt">${f.cal} kcal · ${f.p}g protein</div></div>`+
           (qy?`<div class="qstep"><button class="qm">−</button><span class="qn">${qy}</span><button class="qp">+</button></div>`:`<button class="addmini">Add</button>`)+`</div>`;}).join('');
       pl.querySelectorAll('.pick').forEach(el=>{const n=el.dataset.name;
-        el.onclick=()=>{sel[n]=Math.min(20,(sel[n]||0)+1);draw();refreshBtn();};
+        el.onclick=()=>{if(!sel[n]){sel[n]=1;draw();refreshBtn();}};   // add once; use the stepper to change qty
         const qm=el.querySelector('.qm'),qp=el.querySelector('.qp');
         if(qm)qm.onclick=e=>{e.stopPropagation();sel[n]=(sel[n]||0)-1;if(sel[n]<=0)delete sel[n];draw();refreshBtn();};
         if(qp)qp.onclick=e=>{e.stopPropagation();sel[n]=Math.min(20,(sel[n]||0)+1);draw();refreshBtn();};});};
