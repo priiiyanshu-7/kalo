@@ -287,7 +287,7 @@ function renderYou(){
   $('exportData').onclick=exportData;
   $('resetApp').onclick=()=>{ if(confirm('This erases your profile, logs and weight history. Continue?')){state=fresh();state.viewDate=todayKey();save();render();} };
   if($('install'))$('install').onclick=async()=>{ if(!window.deferredPrompt)return;window.deferredPrompt.prompt();await window.deferredPrompt.userChoice;window.deferredPrompt=null;render(); };
-  if($('signOut'))$('signOut').onclick=async()=>{ if(confirm('Sign out of Daily?\n\nYour data stays safely synced to your account — it\'ll all be here when you sign back in.')){toast('Signing out…');await cloudSignOut();} };
+  if($('signOut'))$('signOut').onclick=async()=>{ if(confirm('Sign out of Daily?\n\nYour data stays safely synced to your account — it\'ll all be here when you sign back in.')){toast('Signing out…');try{await cloudSignOut();}catch(e){} location.reload();} };
   if($('signIn'))$('signIn').onclick=()=>cloudSignInGoogle();
 }
 function exportData(){

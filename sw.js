@@ -1,5 +1,5 @@
 /* Daily — service worker: precache the shell, network-first with cache fallback */
-const CACHE='daily-v1';
+const CACHE='daily-v2';
 const ASSETS=[
   './','./index.html','./manifest.webmanifest','./icons/icon.svg',
   './css/styles.css',
