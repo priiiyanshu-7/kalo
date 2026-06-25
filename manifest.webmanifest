@@ -1,6 +1,6 @@
 {
-  "name": "Daily — AI fitness tracker",
-  "short_name": "Daily",
+  "name": "Kalo — AI fitness tracker",
+  "short_name": "Kalo",
   "description": "Your AI calorie, macro and workout tracker.",
   "display": "standalone",
   "orientation": "portrait",
