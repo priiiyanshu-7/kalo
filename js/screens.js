@@ -12,9 +12,8 @@ function renderToday(){
   const dietPill={veg:'pill-veg',egg:'pill-egg',nonveg:'pill-non'}[p.diet];
   const wg=waterGoal(),water=dayRec().water;
   screen.innerHTML=`
-    <div class="head"><div><div class="date">${isViewingToday()?'Diet':'Past day'}</div><div class="h1">Today</div></div>
-      <div class="pill ${dietPill}">${dietLabel}</div></div>
     ${dayNav()}
+    <div style="text-align:center;margin:-8px 0 14px"><span class="pill ${dietPill}">${dietLabel}</span></div>
     ${isViewingToday()?'':`<div class="pastbar">You're editing a past day<button id="jumpToday">Back to today</button></div>`}
     <div class="ringcard"><div class="ringwrap">
       <svg width="240" height="240" viewBox="0 0 240 240"><defs>
@@ -32,7 +31,7 @@ function renderToday(){
 
     <div class="section"><div class="aibox">
       <div class="ai-h">✨ Log with AI</div>
-      <div class="ai-d">Just type what you ate — Claude estimates the calories.</div>
+      <div class="ai-d">Just type what you ate — AI estimates the calories.</div>
       <div class="ai-row"><input id="aiFood" placeholder="2 rotis, dal and a bowl of curd" autocomplete="off"><button class="sparkbtn" id="aiFoodBtn">➜</button></div>
       <div id="aiFoodStatus"></div>
       <div class="chips">
@@ -116,7 +115,7 @@ Use realistic Indian portion estimates. If amount is unclear, assume one standar
 }
 async function aiSuggestMeals(t,remaining){
   const box=$('sugg');const proteinLeft=Math.max(t.protein-eaten().protein,0);
-  box.innerHTML=`<div class="ai-status"><span class="spin"></span> Asking Claude for ${state.profile.diet} ideas…</div>`;
+  box.innerHTML=`<div class="ai-status"><span class="spin"></span> Asking AI for ${state.profile.diet} ideas…</div>`;
   try{
     const out=await askClaude(`Suggest 3 specific Indian foods or simple meals for someone.
 Diet: ${state.profile.diet} (veg = no egg/meat, egg = veg + eggs ok, nonveg = anything).
@@ -134,7 +133,7 @@ Prefer higher-protein options. Respond with ONLY a JSON array (no markdown). Eac
 function renderTrain(){
   const burnt=burntToday();
   screen.innerHTML=`
-    <div class="head"><div><div class="date">Move</div><div class="h1">Train</div></div>${dayNav()}</div>
+    ${dayNav()}
     ${isViewingToday()?'':`<div class="pastbar">You're editing a past day<button id="jumpToday">Back to today</button></div>`}
     <div class="ringcard" style="margin-bottom:6px">
       <div class="orb" style="background:radial-gradient(circle at 32% 28%,#FFF0E6,#E0805A 70%,#C25E37)">🏋️</div>
@@ -143,7 +142,7 @@ function renderTrain(){
     </div>
     <div class="section"><div class="aibox">
       <div class="ai-h">✨ Log a workout with AI</div>
-      <div class="ai-d">Type what you did — Claude estimates the burn.</div>
+      <div class="ai-d">Type what you did — AI estimates the burn.</div>
       <div class="ai-row"><input id="aiEx" placeholder="ran 30 min and 20 min weights" autocomplete="off"><button class="sparkbtn" id="aiExBtn">➜</button></div>
       <div id="aiExStatus"></div>
     </div></div>

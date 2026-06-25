@@ -5,16 +5,23 @@ let guestMode=false;   // chose "continue without account" in this session
 
 /* ---- router ---- */
 function render(){
+  const fab=$('fab');
   // gate: cloud configured + not signed in + not a guest → auth screen
-  if(CLOUD && !currentUser && !guestMode){ return renderAuth(); }
+  if(CLOUD && !currentUser && !guestMode){ if(fab)fab.style.display='none'; return renderAuth(); }
   if(state.profile)save();
-  if(!state.profile){ fnav.style.display='none'; return onboarding(); }
+  if(!state.profile){ fnav.style.display='none'; if(fab)fab.style.display='none'; return onboarding(); }
   fnav.style.display='flex';
   [...fnav.children].forEach(b=>b.classList.toggle('on',b.dataset.tab===state.tab));
   if(state.tab==='today')renderToday();
   else if(state.tab==='train')renderTrain();
   else if(state.tab==='streak')renderStreak();
   else renderYou();
+  // floating + : add food on Diet, add workout on Train
+  if(fab){
+    if(state.tab==='today'){fab.style.display='flex';fab.onclick=openFoodSheet;}
+    else if(state.tab==='train'){fab.style.display='flex';fab.onclick=openExSheet;}
+    else fab.style.display='none';
+  }
 }
 fnav.onclick=e=>{const b=e.target.closest('button');if(!b)return;state.tab=b.dataset.tab;if(b.dataset.tab!=='today'&&b.dataset.tab!=='train')state.viewDate=todayKey();render();screen.scrollTop=0;};
 

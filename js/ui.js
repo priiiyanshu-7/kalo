@@ -21,18 +21,19 @@ function macro(label,val,goal,grad){
   return `<div class="mchip"><div class="mv">${has?Math.round(val):'—'}<span style="font-size:12px;color:var(--grey);font-family:Inter"> /${goal}g</span></div><div class="ml">${label}</div><div class="mt"><div class="mf" style="width:${pct}%;background:${grad}"></div></div></div>`;
 }
 
-/* date navigator used on Diet & Train (lets you edit past days) */
+/* centered single-line day switcher used on Diet & Train (edit past days) */
 function dayNav(){
   const today=isViewingToday();
   const d=new Date(viewKey());
-  const lbl=today?'Today':d.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'});
-  return `<div class="daynav">
+  const dayWord=today?'Today':d.toLocaleDateString('en-IN',{weekday:'long'});
+  const dateStr=d.toLocaleDateString('en-IN',{day:'numeric',month:'long'});
+  return `<div class="dayswitch">
     <button data-day="-1" aria-label="Previous day">‹</button>
-    <div style="min-width:96px;text-align:center"><div class="date">${today?d.toLocaleDateString('en-IN',{day:'numeric',month:'long'}):'Editing'}</div><div style="font-weight:600">${lbl}</div></div>
+    <div class="ds-mid"><span class="ds-day">${dayWord}</span><span class="ds-dot">·</span><span class="ds-date">${dateStr}</span></div>
     <button data-day="1" ${today?'disabled':''} aria-label="Next day">›</button>
   </div>`;
 }
-function wireDayNav(){screen.querySelectorAll('.daynav button[data-day]').forEach(b=>b.onclick=()=>shiftDay(+b.dataset.day));}
+function wireDayNav(){screen.querySelectorAll('.dayswitch button[data-day]').forEach(b=>b.onclick=()=>shiftDay(+b.dataset.day));}
 
 /* weight trend chart (svg line + fill). pts = array of numbers */
 function trendChart(pts,h){
