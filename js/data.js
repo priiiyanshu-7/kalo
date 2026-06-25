@@ -197,8 +197,10 @@ let FOODS=[
 ];
 
 const EXERCISES=[
+  {name:"Gym workout",rate:7},{name:"Weight / strength training",rate:6},{name:"Bodybuilding (hypertrophy)",rate:6},
+  {name:"CrossFit",rate:12},{name:"Calisthenics",rate:7},{name:"Push / Pull / Leg day",rate:7},
   {name:"Running",rate:11},{name:"Jogging",rate:9},{name:"Walking",rate:5},
-  {name:"Cycling",rate:8},{name:"Weight training",rate:6},{name:"Calisthenics",rate:7},
+  {name:"Treadmill",rate:9},{name:"Cycling",rate:8},{name:"Spinning / Cycle class",rate:11},
   {name:"HIIT",rate:13},{name:"Yoga",rate:4},{name:"Pilates",rate:5},
   {name:"Swimming",rate:10},{name:"Skipping / Jump rope",rate:12},{name:"Boxing",rate:12},
   {name:"Dancing / Zumba",rate:8},{name:"Stair climbing",rate:9},{name:"Elliptical",rate:9},

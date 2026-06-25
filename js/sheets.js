@@ -22,17 +22,26 @@ function openFoodSheet(){
   body();
   function body(){tab==='library'?lib():custom();}
   function lib(){
-    $('sb').innerHTML=`<div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#B4B9C2" stroke-width="2"/><path d="M20 20l-3-3" stroke="#B4B9C2" stroke-width="2" stroke-linecap="round"/></svg><input id="q" placeholder="Search dal, paneer, egg…" autocomplete="off"></div><div class="picklist" id="pl"></div><div id="qa"></div><button class="glass" id="cf">Add to day</button><button class="ghost" id="cc2">Cancel</button>`;
+    let sel={};   // name -> qty (multi-select cart; tap several, add at once)
+    $('sb').innerHTML=`<div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#B4B9C2" stroke-width="2"/><path d="M20 20l-3-3" stroke="#B4B9C2" stroke-width="2" stroke-linecap="round"/></svg><input id="q" placeholder="Search dal, paneer, egg…" autocomplete="off"></div><p class="sub" style="font-size:12px;text-align:center;margin:0 0 8px">Tap to add — pick as many as you like.</p><div class="picklist" id="pl"></div><button class="glass" id="cf">Add to day</button><button class="ghost" id="cc2">Cancel</button>`;
     const q=$('q');
+    const count=()=>Object.values(sel).reduce((s,n)=>s+n,0);
+    const kcal=()=>Object.keys(sel).reduce((s,n)=>{const f=FOODS.find(x=>x.name===n);return s+(f?f.cal*sel[n]:0);},0);
+    const refreshBtn=()=>{const c=count();$('cf').textContent=c?`Add ${c} item${c>1?'s':''} · ${kcal()} kcal`:'Add to day';};
     const draw=()=>{const term=q.value.trim().toLowerCase();const items=FOODS.filter(f=>canEat(f.diet)).filter(f=>f.name.toLowerCase().includes(term));const pl=$('pl');
       if(!items.length){pl.innerHTML=`<div class="empty">No match. Try <b>Add your own</b>.</div>`;return;}
-      pl.innerHTML=items.map(f=>`<div class="pick ${selected===f.name?'sel':''}" data-name="${f.name}"><div class="dot" style="width:10px;height:10px;border-radius:50%;background:${dietColor(f.diet)}"></div><div><div class="nm">${f.name}</div><div class="mt">${f.p}g protein</div></div><div class="cal">${f.cal}</div></div>`).join('');
-      pl.querySelectorAll('.pick').forEach(el=>el.onclick=()=>{selected=el.dataset.name;qty=1;draw();drawQ();});};
-    const drawQ=()=>{const qa=$('qa');if(!selected){qa.innerHTML='';return;}const f=FOODS.find(x=>x.name===selected);
-      qa.innerHTML=`<div class="qtybar"><span class="ql">Servings</span><div class="stepper"><button id="mn">−</button><span class="qn">${qty}</span><button id="pl2">+</button></div></div><div class="preview">That's <b>${f.cal*qty} kcal</b> · ${f.p*qty}g protein</div>`;
-      $('mn').onclick=()=>{qty=Math.max(1,qty-1);drawQ();};$('pl2').onclick=()=>{qty=Math.min(20,qty+1);drawQ();};};
-    q.oninput=draw;draw();
-    $('cf').onclick=()=>{if(!selected){alert('Pick a food first.');return;}const f=FOODS.find(x=>x.name===selected);dayRec().log.push({name:f.name,cal:f.cal,p:f.p,c:f.c,fat:f.fat,diet:f.diet,qty});save();closeSheet();render();toast('Added '+f.name);};
+      pl.innerHTML=items.map(f=>{const qy=sel[f.name]||0;
+        return `<div class="pick ${qy?'sel':''}" data-name="${f.name}"><div class="dot" style="width:10px;height:10px;border-radius:50%;background:${dietColor(f.diet)}"></div><div><div class="nm">${f.name}</div><div class="mt">${f.cal} kcal · ${f.p}g protein</div></div>`+
+          (qy?`<div class="qstep"><button class="qm">−</button><span class="qn">${qy}</span><button class="qp">+</button></div>`:`<button class="addmini">Add</button>`)+`</div>`;}).join('');
+      pl.querySelectorAll('.pick').forEach(el=>{const n=el.dataset.name;
+        el.onclick=()=>{sel[n]=Math.min(20,(sel[n]||0)+1);draw();refreshBtn();};
+        const qm=el.querySelector('.qm'),qp=el.querySelector('.qp');
+        if(qm)qm.onclick=e=>{e.stopPropagation();sel[n]=(sel[n]||0)-1;if(sel[n]<=0)delete sel[n];draw();refreshBtn();};
+        if(qp)qp.onclick=e=>{e.stopPropagation();sel[n]=Math.min(20,(sel[n]||0)+1);draw();refreshBtn();};});};
+    q.oninput=draw;draw();refreshBtn();
+    $('cf').onclick=()=>{const names=Object.keys(sel);if(!names.length){alert('Tap at least one food to add.');return;}
+      names.forEach(n=>{const f=FOODS.find(x=>x.name===n);if(f)dayRec().log.push({name:f.name,cal:f.cal,p:f.p,c:f.c,fat:f.fat,diet:f.diet,qty:sel[n]});});
+      const c=count();save();closeSheet();render();toast(`Added ${c} item${c>1?'s':''}`);};
     $('cc2').onclick=closeSheet;
   }
   function custom(){
