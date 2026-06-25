@@ -8,7 +8,7 @@
    2. In Vercel → your project → Settings → Environment Variables
       add  GEMINI_API_KEY = <your key>   (then redeploy)
    ============================================================ */
-const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") { res.status(405).json({ error: "POST only" }); return; }
