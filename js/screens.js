@@ -85,11 +85,16 @@ function renderLog(){
     <div class="cal">${f.cal*f.qty}</div><button class="rm" data-i="${i}" aria-label="Remove">×</button></div>`).join('');
   box.querySelectorAll('.rm').forEach(b=>b.onclick=()=>{dayRec().log.splice(+b.dataset.i,1);save();render();});
 }
-function renderSugg(t,remaining){
-  let picks=FOODS.filter(f=>canEat(f.diet)).filter(f=>f.cal<=Math.max(remaining,150)).sort((a,b)=>b.p-a.p).slice(0,3);
+function renderSugg(t,remaining,expanded){
+  // protein-first picks that fit the calories you have left → help you hit your goal
+  let pool=FOODS.filter(f=>canEat(f.diet)).filter(f=>f.cal<=Math.max(remaining,200)).sort((a,b)=>b.p-a.p);
+  const limit=expanded?12:4;
+  const picks=pool.slice(0,limit);
   if(!picks.length){$('sugg').innerHTML=`<div class="empty">Goal reached — nice. A cup of curd is a light top-up.</div>`;return;}
-  $('sugg').innerHTML=picks.map(f=>suggRow(f)).join('');
+  $('sugg').innerHTML=picks.map(f=>suggRow(f)).join('')
+    + (pool.length>limit&&!expanded?`<button class="ghost" id="moreSugg" style="padding:10px 0">View ${Math.min(pool.length-limit,8)} more</button>`:'');
   wireSugg();
+  if($('moreSugg'))$('moreSugg').onclick=()=>renderSugg(t,remaining,true);
 }
 function suggRow(f){return `<div class="row"><div class="dot" style="background:${dietColor(f.diet||'veg')}"></div>
   <div><div class="nm">${f.name}</div><div class="mt">${f.cal} kcal · ${f.p}g protein</div></div>
@@ -113,19 +118,20 @@ Use realistic Indian portion estimates. If amount is unclear, assume one standar
   }catch(err){ s.innerHTML=`<div class="ai-status" style="color:var(--clay)">Couldn't reach AI here. You can add it manually instead.</div>`;btn.disabled=false; }
 }
 async function aiSuggestMeals(t,remaining){
-  const box=$('sugg');const proteinLeft=Math.max(t.protein-eaten().protein,0);
-  box.innerHTML=`<div class="ai-status"><span class="spin"></span> Asking AI for ${state.profile.diet} ideas…</div>`;
+  const box=$('sugg');const proteinLeft=Math.max(Math.round(t.protein-eaten().protein),0);
+  const goalText={lose:'lose fat',gain:'build muscle',recomp:'lose fat and build muscle',maintain:'maintain weight'}[state.profile.goal]||'reach their goal';
+  box.innerHTML=`<div class="ai-status"><span class="spin"></span> Finding ${state.profile.diet} meals to hit your goal…</div>`;
   try{
-    const out=await askClaude(`Suggest 3 specific Indian foods or simple meals for someone.
-Diet: ${state.profile.diet} (veg = no egg/meat, egg = veg + eggs ok, nonveg = anything).
-Goal: ${state.profile.goal}. They have about ${remaining} kcal and ${proteinLeft}g protein left today.
-Prefer higher-protein options. Respond with ONLY a JSON array (no markdown). Each element:
-{"name": short label, "cal": number, "p": number, "c": number, "fat": number, "diet": "veg"|"egg"|"nonveg"}.`);
-    const items=parseJSON(out).slice(0,4).filter(x=>x&&x.name&&x.cal);
+    const out=await askClaude(`You are a friendly nutrition coach. Suggest 6 specific ${state.profile.diet} foods or simple Indian-friendly meals to help the person ${goalText} today.
+Diet rule: veg = no egg/meat; egg = veg + eggs ok; nonveg = anything.
+They have about ${remaining} kcal and ${proteinLeft} g protein left today. Prefer high-protein, satisfying options that fit within the remaining calories. Vary the suggestions.
+Respond with ONLY a JSON array (no markdown, no commentary). Each element:
+{"name": short label with portion (e.g. "Grilled chicken 150g"), "cal": number, "p": number, "c": number, "fat": number, "diet": "veg"|"egg"|"nonveg"}.`);
+    const items=parseJSON(out).slice(0,8).filter(x=>x&&x.name&&x.cal);
     if(!items.length)throw new Error("empty");
     box.innerHTML=items.map(x=>{const f=fillMacros({name:String(x.name),cal:Math.round(+x.cal),p:Math.round(+x.p||0),c:x.c!=null?Math.round(+x.c):null,fat:x.fat!=null?Math.round(+x.fat):null,diet:x.diet||'veg'});return suggRow(f);}).join('');
     wireSugg();
-  }catch(err){ renderSugg(t,remaining); box.insertAdjacentHTML('beforeend',`<div class="sub" style="font-size:12px;text-align:center;margin-top:6px">AI unavailable here — showing built-in picks.</div>`); }
+  }catch(err){ renderSugg(t,remaining); box.insertAdjacentHTML('beforeend',`<div class="sub" style="font-size:12px;text-align:center;margin-top:6px">AI's busy right now — showing smart picks instead. Tap ✨ to retry.</div>`); }
 }
 
 /* ---------------- TRAIN ---------------- */
