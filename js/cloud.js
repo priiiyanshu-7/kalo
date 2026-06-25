@@ -23,7 +23,9 @@ function initCloud(){
 async function cloudSignInGoogle(){
   if(!CLOUD)return;
   const redirectTo=location.origin+location.pathname;
-  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo}});
+  // prompt:'select_account' forces Google to show the account picker every time,
+  // so you can choose / switch which Gmail to sign in with.
+  await sb.auth.signInWithOAuth({provider:'google',options:{redirectTo,queryParams:{prompt:'select_account'}}});
 }
 async function cloudSignOut(){
   if(!CLOUD)return;
