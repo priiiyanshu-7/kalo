@@ -63,11 +63,15 @@ function openExSheet(){
   let selected=null,minutes=30;
   openSheet(`<div class="orb" style="width:74px;height:74px;margin:6px auto 14px;font-size:32px;background:radial-gradient(circle at 32% 28%,#FFF0E6,#E0805A 70%,#C25E37)">🏋️</div>
     <div class="h2">Log a workout</div>
-    <div class="picklist" id="exl" style="max-height:30vh"></div>
+    <div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#B4B9C2" stroke-width="2"/><path d="M20 20l-3-3" stroke="#B4B9C2" stroke-width="2" stroke-linecap="round"/></svg><input id="exqs" placeholder="Search gym, running, yoga…" autocomplete="off"></div>
+    <div class="picklist" id="exl" style="max-height:32vh"></div>
     <div id="exq"></div>
     <button class="glass" id="ce">Add to day</button><button class="ghost" id="cce">Cancel</button>`);
-  const draw=()=>{$('exl').innerHTML=EXERCISES.map(x=>`<div class="pick ${selected===x.name?'sel':''}" data-name="${x.name}"><div class="dot" style="width:10px;height:10px;border-radius:50%;background:#E0805A"></div><div><div class="nm">${x.name}</div><div class="mt">~${x.rate} kcal/min</div></div></div>`).join('');
+  const draw=()=>{const term=($('exqs').value||'').trim().toLowerCase();const items=EXERCISES.filter(x=>x.name.toLowerCase().includes(term));
+    if(!items.length){$('exl').innerHTML=`<div class="empty">No match. Try a simpler word, or log it with AI on the Train screen.</div>`;return;}
+    $('exl').innerHTML=items.map(x=>`<div class="pick ${selected===x.name?'sel':''}" data-name="${x.name}"><div class="dot" style="width:10px;height:10px;border-radius:50%;background:#E0805A"></div><div><div class="nm">${x.name}</div><div class="mt">~${x.rate} kcal/min</div></div></div>`).join('');
     $('exl').querySelectorAll('.pick').forEach(el=>el.onclick=()=>{selected=el.dataset.name;draw();drawQ();});};
+  $('exqs').oninput=draw;
   const drawQ=()=>{const q=$('exq');if(!selected){q.innerHTML='';return;}const ex=EXERCISES.find(x=>x.name===selected);
     q.innerHTML=`<div class="qtybar"><span class="ql">Minutes</span><div class="stepper"><button id="m1">−</button><span class="qn">${minutes}</span><button id="m2">+</button></div></div><div class="preview">≈ <b>${ex.rate*minutes} kcal</b> burnt</div>`;
     $('m1').onclick=()=>{minutes=Math.max(5,minutes-5);drawQ();};$('m2').onclick=()=>{minutes=Math.min(240,minutes+5);drawQ();};};
