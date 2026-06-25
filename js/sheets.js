@@ -23,7 +23,7 @@ function openFoodSheet(){
   function body(){tab==='library'?lib():custom();}
   function lib(){
     let sel={};   // name -> qty (multi-select cart; tap several, add at once)
-    $('sb').innerHTML=`<div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#B4B9C2" stroke-width="2"/><path d="M20 20l-3-3" stroke="#B4B9C2" stroke-width="2" stroke-linecap="round"/></svg><input id="q" placeholder="Search dal, paneer, egg…" autocomplete="off"></div><p class="sub" style="font-size:12px;text-align:center;margin:0 0 8px">Tap to add — pick as many as you like.</p><div class="picklist" id="pl"></div><button class="glass" id="cf">Add to day</button><button class="ghost" id="cc2">Cancel</button>`;
+    $('sb').innerHTML=`<div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="#B4B9C2" stroke-width="2"/><path d="M20 20l-3-3" stroke="#B4B9C2" stroke-width="2" stroke-linecap="round"/></svg><input id="q" placeholder="Search any dish — Indian or world…" autocomplete="off"></div><p class="sub" style="font-size:12px;text-align:center;margin:0 0 8px">Tap to add — pick as many as you like.</p><div class="picklist" id="pl"></div><div id="aibtn"></div><button class="glass" id="cf">Add to day</button><button class="ghost" id="cc2">Cancel</button>`;
     const q=$('q');
     const count=()=>Object.values(sel).reduce((s,n)=>s+n,0);
     const kcal=()=>Object.keys(sel).reduce((s,n)=>{const f=FOODS.find(x=>x.name===n);return s+(f?f.cal*sel[n]:0);},0);
@@ -37,7 +37,23 @@ function openFoodSheet(){
         el.onclick=()=>{if(!sel[n]){sel[n]=1;draw();refreshBtn();}};   // add once; use the stepper to change qty
         const qm=el.querySelector('.qm'),qp=el.querySelector('.qp');
         if(qm)qm.onclick=e=>{e.stopPropagation();sel[n]=(sel[n]||0)-1;if(sel[n]<=0)delete sel[n];draw();refreshBtn();};
-        if(qp)qp.onclick=e=>{e.stopPropagation();sel[n]=Math.min(20,(sel[n]||0)+1);draw();refreshBtn();};});};
+        if(qp)qp.onclick=e=>{e.stopPropagation();sel[n]=Math.min(20,(sel[n]||0)+1);draw();refreshBtn();};});
+      const term2=q.value.trim();
+      $('aibtn').innerHTML=term2.length>=2?`<button class="ghost" id="aiEst" style="padding:8px 0;font-size:14px;color:var(--blue-deep)">✨ Not listed? Estimate “${term2}” with AI</button>`:'';
+      if($('aiEst'))$('aiEst').onclick=()=>aiEstimate(term2);};
+    const aiEstimate=async(term)=>{
+      if(!term)return;
+      $('aibtn').innerHTML=`<div class="ai-status" style="justify-content:center;padding:8px"><span class="spin"></span> Estimating “${term}”…</div>`;
+      try{
+        const out=await askClaude(`Estimate nutrition for one standard serving of "${term}" (could be a regional Indian, local, or international dish). Respond with ONLY a JSON array containing exactly ONE element: {"name": short label with portion, "cal": number, "p": number (protein g), "c": number (carbs g), "fat": number (fat g), "diet": "veg"|"egg"|"nonveg"}.`);
+        const arr=parseJSON(out);const x=Array.isArray(arr)?arr[0]:arr;
+        if(!x||!x.name||!x.cal)throw new Error('bad');
+        const food=fillMacros({name:String(x.name),cal:Math.round(+x.cal),p:Math.round(+x.p||0),c:x.c!=null?Math.round(+x.c):null,fat:x.fat!=null?Math.round(+x.fat):null,diet:['veg','egg','nonveg'].includes(x.diet)?x.diet:'veg'});
+        FOODS.push(food);   // remember it for next time
+        dayRec().log.push({name:food.name,cal:food.cal,p:food.p,c:food.c,fat:food.fat,diet:food.diet,qty:1});
+        save();closeSheet();render();toast('Added '+food.name+' ✨');
+      }catch(e){ $('aibtn').innerHTML=`<div class="sub" style="text-align:center;font-size:12px;color:var(--clay);padding:6px">Couldn't estimate that — try again or use the main “Log with AI” box.</div>`; }
+    };
     q.oninput=draw;draw();refreshBtn();
     $('cf').onclick=()=>{const names=Object.keys(sel);if(!names.length){alert('Tap at least one food to add.');return;}
       names.forEach(n=>{const f=FOODS.find(x=>x.name===n);if(f)dayRec().log.push({name:f.name,cal:f.cal,p:f.p,c:f.c,fat:f.fat,diet:f.diet,qty:sel[n]});});
