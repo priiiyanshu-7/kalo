@@ -4,9 +4,9 @@
 
 /* ---------------- DIET / TODAY ---------------- */
 function renderToday(){
-  const p=state.profile,t=calc(p),e=eaten(),burnt=burntToday();
-  const remaining=Math.max(t.target-e.cal+burnt,0),pct=Math.min(e.cal/t.target,1);
-  const over=e.cal-burnt>t.target;
+  const p=state.profile,t=calc(p),e=eaten();
+  const remaining=Math.max(t.target-e.cal,0),pct=Math.min(e.cal/t.target,1);
+  const over=e.cal>t.target;   // diet is food-only; workout burn is tracked separately on Train
   const R=104,C=2*Math.PI*R,dash=C*pct;
   const dietLabel={veg:'Veg',egg:'Eggetarian',nonveg:'Non-veg'}[p.diet];
   const dietPill={veg:'pill-veg',egg:'pill-egg',nonveg:'pill-non'}[p.diet];
@@ -21,8 +21,8 @@ function renderToday(){
         <filter id="glow"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#7FA8F8" flood-opacity="0.45"/></filter></defs>
         <circle cx="120" cy="120" r="${R}" fill="none" stroke="#EDF1F7" stroke-width="18"/>
         <circle cx="120" cy="120" r="${R}" fill="none" stroke="url(#bg)" stroke-width="18" stroke-linecap="round" stroke-dasharray="${dash} ${C}" transform="rotate(-90 120 120)" filter="url(#glow)"/></svg>
-      <div class="ctr"><div class="big" style="${over?'color:var(--clay)':''}">${over?'+'+(e.cal-burnt-t.target).toLocaleString('en-IN'):remaining.toLocaleString('en-IN')}</div><div class="cap">${over?'over goal':'calories left'}</div></div></div>
-      <div class="ringline"><b>${e.cal.toLocaleString('en-IN')}</b> eaten · <b>${t.target.toLocaleString('en-IN')}</b> goal${burnt?` · <b>${burnt}</b> burnt`:''}</div>
+      <div class="ctr"><div class="big" style="${over?'color:var(--clay)':''}">${over?'+'+(e.cal-t.target).toLocaleString('en-IN'):remaining.toLocaleString('en-IN')}</div><div class="cap">${over?'over goal':'calories left'}</div></div></div>
+      <div class="ringline"><b>${e.cal.toLocaleString('en-IN')}</b> eaten · <b>${t.target.toLocaleString('en-IN')}</b> goal</div>
       <div class="macros">
         ${macro('Protein',e.protein,t.protein,'linear-gradient(90deg,#57B894,#3FA37E)')}
         ${macro('Carbs',e.carbs,t.carbs,'linear-gradient(90deg,#84AEF8,#6F9BF2)')}
@@ -54,10 +54,9 @@ function renderToday(){
 
     <div class="section"><div class="section-head"><div class="h2">Calorie budget</div></div>
       <div class="budget">
-        <div class="brow"><span class="bl"><span class="sw" style="background:var(--leaf)"></span>Eaten</span><span class="bv">${e.cal.toLocaleString('en-IN')}</span></div>
-        <div class="brow"><span class="bl"><span class="sw" style="background:var(--clay)"></span>Burnt in workouts</span><span class="bv">−${burnt.toLocaleString('en-IN')}</span></div>
         <div class="brow"><span class="bl"><span class="sw" style="background:var(--blue)"></span>Daily goal</span><span class="bv">${t.target.toLocaleString('en-IN')}</span></div>
-        <div class="brow total"><span class="bl">${over?'Over by':'Remaining'}</span><span class="bv" style="${over?'color:var(--clay)':'color:var(--blue-deep)'}">${over?(e.cal-burnt-t.target).toLocaleString('en-IN'):remaining.toLocaleString('en-IN')}</span></div>
+        <div class="brow"><span class="bl"><span class="sw" style="background:var(--leaf)"></span>Eaten</span><span class="bv">−${e.cal.toLocaleString('en-IN')}</span></div>
+        <div class="brow total"><span class="bl">${over?'Over by':'Remaining'}</span><span class="bv" style="${over?'color:var(--clay)':'color:var(--blue-deep)'}">${over?(e.cal-t.target).toLocaleString('en-IN'):remaining.toLocaleString('en-IN')}</span></div>
       </div>
       <p class="sub" style="font-size:12px;text-align:center;margin-top:12px">${t.adj?`On plan: ${t.adj<0?'losing':'gaining'} ≈ ${t.weeklyKg.toFixed(2)} kg/week · maintenance ${t.maintenance.toLocaleString('en-IN')} kcal`:`Maintenance ${t.maintenance.toLocaleString('en-IN')} kcal`}</p>
     </div>`;
