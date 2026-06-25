@@ -8,7 +8,7 @@
    2. In Vercel → your project → Settings → Environment Variables
       add  GEMINI_API_KEY = <your key>   (then redeploy)
    ============================================================ */
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
+const DEFAULT_MODEL = process.env.GEMINI_MODEL || "gemini-2.0-flash";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") { res.status(405).json({ error: "POST only" }); return; }
@@ -16,15 +16,16 @@ export default async function handler(req, res) {
   const key = process.env.GEMINI_API_KEY;
   if (!key) { res.status(500).json({ error: "GEMINI_API_KEY not set in Vercel" }); return; }
 
-  let prompt = "";
+  let prompt = "", model = DEFAULT_MODEL;
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body) : (req.body || {});
     prompt = body.prompt;
+    if (body.model) model = body.model;   // optional override (for diagnostics)
   } catch (e) { /* ignore */ }
   if (!prompt || typeof prompt !== "string") { res.status(400).json({ error: "missing prompt" }); return; }
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
     const r = await fetch(url, {
       method: "POST",
       headers: { "content-type": "application/json" },
