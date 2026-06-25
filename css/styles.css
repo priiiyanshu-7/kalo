@@ -174,10 +174,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg-cool);color:va
 .synced{font-size:12px;color:var(--leaf);font-weight:600;display:inline-flex;align-items:center;gap:5px;}
 
 /* floating nav */
-.fnav{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 16px);display:flex;gap:2px;padding:7px;
+.fnav{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 16px);
+  width:84%;max-width:392px;display:flex;gap:4px;padding:7px;
   background:rgba(255,255,255,.82);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.8);
   border-radius:999px;box-shadow:0 10px 34px rgba(20,30,50,.18);z-index:15;}
-.fnav button{display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;padding:9px 16px;border-radius:999px;cursor:pointer;color:var(--grey);font-family:inherit;font-size:10px;font-weight:600;transition:all .15s;}
+.fnav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;border:none;background:none;padding:10px 4px;border-radius:999px;cursor:pointer;color:var(--grey);font-family:inherit;font-size:10px;font-weight:600;transition:all .15s;}
 .fnav button .ic{font-size:19px;line-height:1;}
 .fnav button.on{background:linear-gradient(180deg,var(--blue-lite),var(--blue));color:#fff;box-shadow:inset 0 1px 1px rgba(255,255,255,.7),0 4px 12px rgba(122,165,245,.5);text-shadow:0 1px 1px rgba(27,58,134,.2);}
 
